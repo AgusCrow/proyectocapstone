@@ -1,0 +1,239 @@
+{
+  "info": {
+    "name": "UNO Digital API",
+    "description": "Colección Postman para UNO digital: auth, jugadores, juegos, cartas, scores y utilidades de caché.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "game_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/players/register", "host": ["{{baseUrl}}"], "path": ["api", "players", "register"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/players/login", "host": ["{{baseUrl}}"], "path": ["api", "players", "login"] }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try {",
+                  "  const json = pm.response.json();",
+                  "  const token = json.token || json.accessToken || (json.data && json.data.token);",
+                  "  if (token) {",
+                  "    pm.collectionVariables.set('authToken', token);",
+                  "    pm.test('Auth token guardado', function () { pm.expect(!!token).to.eql(true); });",
+                  "  } else {",
+                  "    pm.test('Auth token no encontrado en la respuesta', function () { pm.expect(false).to.eql(true); });",
+                  "  }",
+                  "} catch (e) {",
+                  "  pm.test('Respuesta no es JSON válido', function () { pm.expect(false).to.eql(true); });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout User",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/players/logout", "host": ["{{baseUrl}}"], "path": ["api", "players", "logout"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/players/profile", "host": ["{{baseUrl}}"], "path": ["api", "players", "profile"] }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Players",
+      "item": [
+        {
+          "name": "Create Player",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/players", "host": ["{{baseUrl}}"], "path": ["api", "players"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Player by ID",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/players/1", "host": ["{{baseUrl}}"], "path": ["api", "players", "1"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Player",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"updateduser\",\n  \"email\": \"updated@example.com\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/players/1", "host": ["{{baseUrl}}"], "path": ["api", "players", "1"] }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Player",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/players/1", "host": ["{{baseUrl}}"], "path": ["api", "players", "1"] }
+          },
+          "response": []
+        },
+        {
+          "name": "List Players",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/players", "host": ["{{baseUrl}}"], "path": ["api", "players"] }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Games",
+      "item": [
+        {
+          "name": "Create Game",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test Game\",\n  \"rules\": \"Standard UNO rules\",\n  \"maxPlayers\": 4\n}" },
+            "url": { "raw": "{{baseUrl}}/api/games", "host": ["{{baseUrl}}"], "path": ["api", "games"] }
+          },
+          "response": []
+        },
+        { "name": "Get Game by ID", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}"] } }, "response": [] },
+        { "name": "Update Game", "request": { "method": "PUT", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Game\",\n  \"rules\": \"Updated rules\"\n}" }, "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}"] } }, "response": [] },
+        { "name": "Delete Game", "request": { "method": "DELETE", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}"] } }, "response": [] },
+        { "name": "List Games", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games", "host": ["{{baseUrl}}"], "path": ["api", "games"] } }, "response": [] },
+        { "name": "Start Game", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/start", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "start"] } }, "response": [] },
+        { "name": "End Game", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/end", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "end"] } }, "response": [] },
+        { "name": "Leave Game", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/leave", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "leave"] } }, "response": [] },
+        { "name": "Get Game Status", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/status", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "status"] } }, "response": [] },
+        { "name": "Check Game End", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/check-end", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "check-end"] } }, "response": [] },
+        { "name": "Get Players in Game", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/players", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "players"] } }, "response": [] },
+        { "name": "Get Current Player", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/current-player", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "current-player"] } }, "response": [] },
+        { "name": "Get Top Card", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/top-card", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "top-card"] } }, "response": [] },
+        { "name": "Get Game Scores", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/scores", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "scores"] } }, "response": [] },
+        { "name": "Deal Cards to Players", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/deal-cards", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "deal-cards"] } }, "response": [] },
+        { "name": "Play Card (rules)", "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "body": { "mode": "raw", "raw": "{\n  \"playerCardId\": 1\n}" }, "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/play-card", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "play-card"] } }, "response": [] },
+        { "name": "Draw Card (rules)", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/draw-card", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "draw-card"] } }, "response": [] },
+        { "name": "Say UNO", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/say-uno", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "say-uno"] } }, "response": [] },
+        { "name": "Challenge UNO", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/challenge-uno", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "challenge-uno"] } }, "response": [] },
+        { "name": "End Player Turn", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/end-turn", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "end-turn"] } }, "response": [] },
+        { "name": "Get Move History", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/history", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "history"] } }, "response": [] },
+        { "name": "Get My Cards", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/my-cards", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "my-cards"] } }, "response": [] },
+        { "name": "Multiplayer Signal", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/multiplayer", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "multiplayer"] } }, "response": [] },
+        { "name": "Log Game Error", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/log-error", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "log-error"] } }, "response": [] },
+        { "name": "Play Skip Card", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/play-skip-card", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "play-skip-card"] } }, "response": [] },
+        { "name": "Play Reverse Card", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/play-reverse-card", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "play-reverse-card"] } }, "response": [] },
+        { "name": "Draw Until Playable", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/draw-until-playable", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "draw-until-playable"] } }, "response": [] }
+      ]
+    },
+    {
+      "name": "Player Cards",
+      "item": [
+        { "name": "Get Player Hand", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/hand", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "hand"] } }, "response": [] },
+        { "name": "Play Card", "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "body": { "mode": "raw", "raw": "{\n  \"playerCardId\": 1\n}" }, "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/play-card", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "play-card"] } }, "response": [] },
+        { "name": "Draw Card", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/draw-card", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "draw-card"] } }, "response": [] },
+        { "name": "Get Played Cards", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/played-cards", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "played-cards"] } }, "response": [] },
+        { "name": "Get Last Played Card", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/games/{{game_id}}/last-card", "host": ["{{baseUrl}}"], "path": ["api", "games", "{{game_id}}", "last-card"] } }, "response": [] }
+      ]
+    },
+    {
+      "name": "Cards",
+      "item": [
+        { "name": "Create Card", "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "body": { "mode": "raw", "raw": "{\n  \"color\": \"red\",\n  \"value\": \"5\",\n  \"type\": \"number\"\n}" }, "url": { "raw": "{{baseUrl}}/api/cards", "host": ["{{baseUrl}}"], "path": ["api", "cards"] } }, "response": [] },
+        { "name": "Get Card by ID", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/cards/1", "host": ["{{baseUrl}}"], "path": ["api", "cards", "1"] } }, "response": [] },
+        { "name": "Update Card", "request": { "method": "PUT", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "body": { "mode": "raw", "raw": "{\n  \"color\": \"blue\",\n  \"value\": \"7\"\n}" }, "url": { "raw": "{{baseUrl}}/api/cards/1", "host": ["{{baseUrl}}"], "path": ["api", "cards", "1"] } }, "response": [] },
+        { "name": "Delete Card", "request": { "method": "DELETE", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/cards/1", "host": ["{{baseUrl}}"], "path": ["api", "cards", "1"] } }, "response": [] },
+        { "name": "List Cards", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/cards", "host": ["{{baseUrl}}"], "path": ["api", "cards"] } }, "response": [] }
+      ]
+    },
+    {
+      "name": "Scores",
+      "item": [
+        { "name": "Create Score", "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "body": { "mode": "raw", "raw": "{\n  \"playerId\": 1,\n  \"gameId\": 1,\n  \"score\": 100,\n  \"position\": 1\n}" }, "url": { "raw": "{{baseUrl}}/api/scores", "host": ["{{baseUrl}}"], "path": ["api", "scores"] } }, "response": [] },
+        { "name": "Get Score by ID", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/scores/1", "host": ["{{baseUrl}}"], "path": ["api", "scores", "1"] } }, "response": [] },
+        { "name": "Update Score", "request": { "method": "PUT", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "body": { "mode": "raw", "raw": "{\n  \"score\": 150,\n  \"position\": 2\n}" }, "url": { "raw": "{{baseUrl}}/api/scores/1", "host": ["{{baseUrl}}"], "path": ["api", "scores", "1"] } }, "response": [] },
+        { "name": "Delete Score", "request": { "method": "DELETE", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/scores/1", "host": ["{{baseUrl}}"], "path": ["api", "scores", "1"] } }, "response": [] },
+        { "name": "List Scores", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{authToken}}" } ], "url": { "raw": "{{baseUrl}}/api/scores", "host": ["{{baseUrl}}"], "path": ["api", "scores"] } }, "response": [] }
+      ]
+    },
+    {
+      "name": "Cache (Development)",
+      "item": [
+        { "name": "Clear Cache", "request": { "method": "POST", "header": [], "url": { "raw": "{{baseUrl}}/api/cache/clear", "host": ["{{baseUrl}}"], "path": ["api", "cache", "clear"] } }, "response": [] },
+        { "name": "Cache Stats", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/cache/stats", "host": ["{{baseUrl}}"], "path": ["api", "cache", "stats"] } }, "response": [] },
+        { "name": "Delete Cache Key", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/cache/:key", "host": ["{{baseUrl}}"], "path": ["api", "cache", ":key"] } }, "response": [] },
+        { "name": "Reconfigure Cache", "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n  \"max\": 200,\n  \"maxAge\": 120000,\n  \"enabled\": true\n}" }, "url": { "raw": "{{baseUrl}}/api/cache/reconfigure", "host": ["{{baseUrl}}"], "path": ["api", "cache", "reconfigure"] } }, "response": [] }
+      ]
+    },
+    {
+      "name": "Stats",
+      "item": [
+        { "name": "Requests breakdown", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/stats/requests", "host": ["{{baseUrl}}"], "path": ["api", "stats", "requests"] } }, "response": [] },
+        { "name": "Response times", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/stats/response-times", "host": ["{{baseUrl}}"], "path": ["api", "stats", "response-times"] } }, "response": [] },
+        { "name": "Status codes summary", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/stats/status-codes", "host": ["{{baseUrl}}"], "path": ["api", "stats", "status-codes"] } }, "response": [] },
+        { "name": "Popular endpoints", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/stats/popular-endpoints", "host": ["{{baseUrl}}"], "path": ["api", "stats", "popular-endpoints"] } }, "response": [] }
+      ]
+    }
+  ]
+} 
