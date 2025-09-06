@@ -1,4 +1,5 @@
 import { Sequelize } from 'sequelize';
+import { jest } from '@jest/globals';
 import { Player, Card, Game, PlayerCard, Score, ApiStat, sequelize } from '../src/orm/index.js';
 
 // Mock environment variables

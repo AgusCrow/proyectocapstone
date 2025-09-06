@@ -1,4 +1,5 @@
 // playerCardService.test.js
+import { jest } from '@jest/globals';
 jest.mock("../../src/orm/index.js", () => ({
   PlayerCard: {
     create: jest.fn(),

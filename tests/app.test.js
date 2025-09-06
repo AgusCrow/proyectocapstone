@@ -1,4 +1,5 @@
 import request from "supertest";
+import { jest } from '@jest/globals';
 import "dotenv/config";
 
 // Set base environment variables

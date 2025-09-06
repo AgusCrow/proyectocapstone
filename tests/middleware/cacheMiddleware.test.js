@@ -1,4 +1,5 @@
 // cacheMiddleware.test.js
+import { jest } from '@jest/globals';
 import cacheMiddleware, { cacheUtils, LastCache, invalidateCache, noCache, loadConfig, defaultKeyGenerator } from '../src/middleware/cacheMiddleware.js';
 
 describe('Cache Middleware', () => {

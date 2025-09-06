@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { Player } from '../../src/orm/index.js';
 import playerService from '../../src/services/playerService.js';
 

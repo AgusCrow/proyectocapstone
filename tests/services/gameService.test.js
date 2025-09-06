@@ -1,7 +1,6 @@
+import { jest } from '@jest/globals';
 import gameService from "../../src/services/gameService";
 import { Game, Player } from "../../src/orm/index";
-import cardService from "../../src/services/cardService";
-import playerCardService from "../../src/services/playerCardService";
 
 // Mock de los modelos y servicios
 jest.mock("../../src/orm/index", () => ({

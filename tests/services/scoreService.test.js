@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals';
+
 jest.mock('../../src/orm/index.js', () => ({
   __esModule: true,
   Score: {
@@ -315,7 +317,6 @@ describe('Score Service Tests', () => {
         totalGames: 3,
         totalPoints: 300,
         averagePoints: 100,
-        wins: 2,
         winRate: 66.67
       });
     });
@@ -333,7 +334,6 @@ describe('Score Service Tests', () => {
         totalGames: 0,
         totalPoints: 0,
         averagePoints: 0,
-        wins: 0,
         winRate: 0
       });
     });
