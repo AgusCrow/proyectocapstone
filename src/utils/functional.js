@@ -216,6 +216,14 @@ const shuffleArray = (array) => {
     }
     return newArray;
 };
+
+const ensureRelationMethods = (model) => {
+  if (!model.belongsToMany) model.belongsToMany = () => {};
+  if (!model.hasMany) model.hasMany = () => {};
+  if (!model.belongsTo) model.belongsTo = () => {};
+  if (!model.hasOne) model.hasOne = () => {};
+};
+
 export default {
     curry,
     compose,
@@ -258,5 +266,6 @@ export default {
     groupBy,
     countBy,
     partition,
-    shuffleArray
+    shuffleArray,
+    ensureRelationMethods
 };

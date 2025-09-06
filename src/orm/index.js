@@ -7,6 +7,9 @@ import GameModel from '../models/game.js';
 import PlayerModel from '../models/player.js';
 import PlayerCardModel from '../models/playerCard.js';
 import ScoreModel from '../models/score.js';
+import funtional from '../utils/functional.js';
+
+
 
 dotenv.config();
 
@@ -27,6 +30,13 @@ const Card = CardModel(sequelize, Sequelize.DataTypes);
 const Score = ScoreModel(sequelize, Sequelize.DataTypes);
 const PlayerCard = PlayerCardModel(sequelize, Sequelize.DataTypes);
 const ApiStat = ApiStatModel(sequelize, Sequelize.DataTypes);
+
+funtional.ensureRelationMethods(Player);
+funtional.ensureRelationMethods(Game);
+funtional.ensureRelationMethods(Card);
+funtional.ensureRelationMethods(PlayerCard);
+funtional.ensureRelationMethods(Score);
+funtional.ensureRelationMethods(ApiStat);
 
 // Relaciones existentes
 Player.belongsToMany(Game, { through: 'GamePlayers' });

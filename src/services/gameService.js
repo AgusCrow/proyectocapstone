@@ -135,7 +135,11 @@ const dealCardsToPlayers = async (gameId, userId) => {
     if (players.length === 0) return "no_players";
 
     // Función recursiva para repartir cartas
-    const dealCardsRecursive = async (players, cardsPerPlayer, currentCardIndex = 0) => {
+    const dealCardsRecursive = async (
+      players,
+      cardsPerPlayer,
+      currentCardIndex = 0
+    ) => {
       if (currentCardIndex >= cardsPerPlayer) {
         return { dealt: true, players: players.length, cardsPerPlayer };
       }
@@ -163,12 +167,16 @@ const playCardWithRules = async (gameId, userId, cardId, color) => {
     if (!game) return null;
 
     // Verificar si es el turno del jugador
-    if (!await isPlayerTurn(gameId, userId)) {
+    if (!(await isPlayerTurn(gameId, userId))) {
       return "not_player_turn";
     }
 
     // Verificar si el jugador tiene la carta
-    const playerCard = await playerCardService.getPlayerCard(gameId, userId, cardId);
+    const playerCard = await playerCardService.getPlayerCard(
+      gameId,
+      userId,
+      cardId
+    );
     if (!playerCard) return "card_not_found";
 
     // Validar reglas del juego UNO
@@ -195,7 +203,7 @@ const drawCardForPlayer = async (gameId, userId) => {
     if (game.status !== "started") return "game_not_started";
 
     // Verificar si es el turno del jugador
-    if (!await isPlayerTurn(gameId, userId)) {
+    if (!(await isPlayerTurn(gameId, userId))) {
       return "not_player_turn";
     }
 
@@ -215,7 +223,7 @@ const sayUno = async (gameId, userId) => {
     if (!game) return null;
 
     const players = await game.getPlayers();
-    const player = players.find(p => p.id === userId);
+    const player = players.find((p) => p.id === userId);
     if (!player) return "player_not_found";
 
     // Verificar si el jugador tiene exactamente 1 carta
@@ -224,7 +232,8 @@ const sayUno = async (gameId, userId) => {
 
     // Función recursiva de monitoreo UNO
     const monitorUnoStatus = async (gameId, playerId, monitoringLevel = 0) => {
-      if (monitoringLevel > 10) return { uno_declared: true, monitoring_complete: true };
+      if (monitoringLevel > 10)
+        return { uno_declared: true, monitoring_complete: true };
 
       // Registrar estado UNO
       await playerCardService.setUnoStatus(gameId, playerId, true);
@@ -233,8 +242,14 @@ const sayUno = async (gameId, userId) => {
       const otherPlayers = await getPlayersInGame(gameId);
       for (const otherPlayer of otherPlayers) {
         if (otherPlayer.id !== playerId) {
-          const otherPlayerCards = await playerCardService.getPlayerCards(gameId, otherPlayer.id);
-          if (otherPlayerCards.length === 1 && !await playerCardService.getUnoStatus(gameId, otherPlayer.id)) {
+          const otherPlayerCards = await playerCardService.getPlayerCards(
+            gameId,
+            otherPlayer.id
+          );
+          if (
+            otherPlayerCards.length === 1 &&
+            !(await playerCardService.getUnoStatus(gameId, otherPlayer.id))
+          ) {
             // Encontrar jugador que no dijo UNO
             return { uno_declared: true, potential_violation: otherPlayer.id };
           }
@@ -259,19 +274,29 @@ const challengeUno = async (gameId, userId, challengedPlayerId) => {
     if (!game) return null;
 
     const players = await game.getPlayers();
-    const challenger = players.find(p => p.id === userId);
-    const challenged = players.find(p => p.id === challengedPlayerId);
-    
+    const challenger = players.find((p) => p.id === userId);
+    const challenged = players.find((p) => p.id === challengedPlayerId);
+
     if (!challenger || !challenged) return "player_not_found";
 
     // Verificar si el jugador desafiado tiene 1 carta y no dijo UNO
-    const challengedCards = await playerCardService.getPlayerCards(gameId, challengedPlayerId);
-    const challengedUnoStatus = await playerCardService.getUnoStatus(gameId, challengedPlayerId);
+    const challengedCards = await playerCardService.getPlayerCards(
+      gameId,
+      challengedPlayerId
+    );
+    const challengedUnoStatus = await playerCardService.getUnoStatus(
+      gameId,
+      challengedPlayerId
+    );
 
     if (challengedCards.length === 1 && !challengedUnoStatus) {
       // Desafío exitoso: jugador desafiado debe robar 2 cartas
       await cardService.drawMultipleCards(gameId, challengedPlayerId, 2);
-      return { challenge_success: true, penalty_cards: 2, challenged_player: challengedPlayerId };
+      return {
+        challenge_success: true,
+        penalty_cards: 2,
+        challenged_player: challengedPlayerId,
+      };
     } else {
       // Desafío fallido: desafiante debe robar 2 cartas
       await cardService.drawMultipleCards(gameId, userId, 2);
@@ -290,7 +315,7 @@ const endPlayerTurn = async (gameId, userId) => {
     if (!game) return null;
 
     // Verificar si es el turno del jugador
-    if (!await isPlayerTurn(gameId, userId)) {
+    if (!(await isPlayerTurn(gameId, userId))) {
       return "not_player_turn";
     }
 
@@ -303,7 +328,10 @@ const endPlayerTurn = async (gameId, userId) => {
     // Actualizar turno del juego
     await game.update({ currentPlayerId: nextPlayer.id });
 
-    return { next_player_id: nextPlayer.id, next_player_name: nextPlayer.username };
+    return {
+      next_player_id: nextPlayer.id,
+      next_player_name: nextPlayer.username,
+    };
   } catch (error) {
     console.error("Error ending player turn:", error);
     throw error;
@@ -323,7 +351,10 @@ const checkGameEnd = async (gameId) => {
 
     // Verificar si algún jugador se quedó sin cartas
     for (const player of players) {
-      const playerCards = await playerCardService.getPlayerCards(gameId, player.id);
+      const playerCards = await playerCardService.getPlayerCards(
+        gameId,
+        player.id
+      );
       if (playerCards.length === 0) {
         gameEnded = true;
         winner = player;
@@ -334,13 +365,16 @@ const checkGameEnd = async (gameId) => {
     if (gameEnded) {
       // Calcular puntajes
       for (const player of players) {
-        const playerCards = await playerCardService.getPlayerCards(gameId, player.id);
+        const playerCards = await playerCardService.getPlayerCards(
+          gameId,
+          player.id
+        );
         let playerScore = 0;
-        
+
         for (const card of playerCards) {
           playerScore += getCardValue(card);
         }
-        
+
         scores[player.id] = playerScore;
       }
 
@@ -350,7 +384,7 @@ const checkGameEnd = async (gameId) => {
       return {
         game_ended: true,
         winner: { id: winner.id, username: winner.username },
-        scores: scores
+        scores: scores,
       };
     }
 
@@ -374,11 +408,11 @@ const getGameStatus = async (gameId) => {
     return {
       game_id: gameId,
       status: game.status,
-      players: players.map(p => ({ id: p.id, username: p.username })),
+      players: players.map((p) => ({ id: p.id, username: p.username })),
       top_card: topCard,
       current_player: currentPlayer,
       created_at: game.createdAt,
-      updated_at: game.updatedAt
+      updated_at: game.updatedAt,
     };
   } catch (error) {
     console.error("Error getting game status:", error);
@@ -395,8 +429,13 @@ const getMoveHistory = async (gameId) => {
     // Simulación: obtener historial de movimientos
     const moves = [
       { player: "Player1", action: "drew_card", timestamp: new Date() },
-      { player: "Player2", action: "played_card", card: "Red 5", timestamp: new Date() },
-      { player: "Player1", action: "said_uno", timestamp: new Date() }
+      {
+        player: "Player2",
+        action: "played_card",
+        card: "Red 5",
+        timestamp: new Date(),
+      },
+      { player: "Player1", action: "said_uno", timestamp: new Date() },
     ];
 
     return moves;
@@ -413,7 +452,7 @@ const getPlayerCards = async (gameId, userId) => {
     if (!game) return null;
 
     const players = await game.getPlayers();
-    const player = players.find(p => p.id === userId);
+    const player = players.find((p) => p.id === userId);
     if (!player) return "player_not_in_game";
 
     const playerCards = await playerCardService.getPlayerCards(gameId, userId);
@@ -434,17 +473,20 @@ const getPlayerScores = async (gameId) => {
     const scores = {};
 
     for (const player of players) {
-      const playerCards = await playerCardService.getPlayerCards(gameId, player.id);
+      const playerCards = await playerCardService.getPlayerCards(
+        gameId,
+        player.id
+      );
       let score = 0;
-      
+
       for (const card of playerCards) {
         score += getCardValue(card);
       }
-      
+
       scores[player.id] = {
         username: player.username,
         score: score,
-        cards_count: playerCards.length
+        cards_count: playerCards.length,
       };
     }
 
@@ -461,19 +503,19 @@ const handleMultiplayer = async (gameId, userId, action) => {
     const game = await Game.findByPk(gameId);
     if (!game) return null;
 
-    const validActions = ['add_player', 'remove_player', 'change_settings'];
+    const validActions = ["add_player", "remove_player", "change_settings"];
     if (!validActions.includes(action)) return "invalid_action";
 
     switch (action) {
-      case 'add_player':
+      case "add_player":
         // Lógica para añadir jugador
-        return { action: 'add_player', status: 'success' };
-      case 'remove_player':
+        return { action: "add_player", status: "success" };
+      case "remove_player":
         // Lógica para remover jugador
-        return { action: 'remove_player', status: 'success' };
-      case 'change_settings':
+        return { action: "remove_player", status: "success" };
+      case "change_settings":
         // Lógica para cambiar configuración
-        return { action: 'change_settings', status: 'success' };
+        return { action: "change_settings", status: "success" };
       default:
         return "invalid_action";
     }
@@ -496,10 +538,10 @@ const logGameError = async (gameId, userId, error, context) => {
       error: error,
       context: context,
       timestamp: new Date(),
-      log_id: Math.random().toString(36).substr(2, 9)
+      log_id: Math.random().toString(36).substr(2, 9),
     };
 
-    console.log('Game Error Logged:', errorLog);
+    console.log("Game Error Logged:", errorLog);
     return errorLog.log_id;
   } catch (error) {
     console.error("Error logging game error:", error);
@@ -510,10 +552,15 @@ const logGameError = async (gameId, userId, error, context) => {
 // Week7 - Funcionalidades Avanzadas
 
 // 1. Jugar carta de salto (Skip)
-const playSkipCard = async (cardPlayed, currentPlayerIndex, players, direction) => {
+const playSkipCard = async (
+  cardPlayed,
+  currentPlayerIndex,
+  players,
+  direction
+) => {
   try {
     // Validar que sea una carta de salto
-    if (!cardPlayed || !cardPlayed.toLowerCase().includes('skip')) {
+    if (!cardPlayed || !cardPlayed.toLowerCase().includes("skip")) {
       throw new Error("No es una carta de salto válida");
     }
 
@@ -534,7 +581,7 @@ const playSkipCard = async (cardPlayed, currentPlayerIndex, players, direction) 
       skip_successful: true,
       skipped_player: skippedPlayer,
       next_player: nextPlayer,
-      players_affected: [skippedPlayer]
+      players_affected: [skippedPlayer],
     };
   } catch (error) {
     console.error("Error playing skip card:", error);
@@ -543,10 +590,15 @@ const playSkipCard = async (cardPlayed, currentPlayerIndex, players, direction) 
 };
 
 // 2. Jugar carta de reversa (Reverse)
-const playReverseCard = async (cardPlayed, currentPlayerIndex, players, direction) => {
+const playReverseCard = async (
+  cardPlayed,
+  currentPlayerIndex,
+  players,
+  direction
+) => {
   try {
     // Validar que sea una carta de reversa
-    if (!cardPlayed || !cardPlayed.toLowerCase().includes('reverse')) {
+    if (!cardPlayed || !cardPlayed.toLowerCase().includes("reverse")) {
       throw new Error("No es una carta de reversa válida");
     }
 
@@ -556,14 +608,16 @@ const playReverseCard = async (cardPlayed, currentPlayerIndex, players, directio
     }
 
     // Invertir dirección usando procesamiento de tubería
-    const newDirection = direction === 'clockwise' ? 'counterclockwise' : 'clockwise';
+    const newDirection =
+      direction === "clockwise" ? "counterclockwise" : "clockwise";
 
     // Calcular siguiente jugador basado en la nueva dirección
     let nextPlayerIndex;
-    if (newDirection === 'clockwise') {
+    if (newDirection === "clockwise") {
       nextPlayerIndex = (currentPlayerIndex + 1) % players.length;
     } else {
-      nextPlayerIndex = currentPlayerIndex === 0 ? players.length - 1 : currentPlayerIndex - 1;
+      nextPlayerIndex =
+        currentPlayerIndex === 0 ? players.length - 1 : currentPlayerIndex - 1;
     }
 
     const nextPlayer = players[nextPlayerIndex];
@@ -572,7 +626,7 @@ const playReverseCard = async (cardPlayed, currentPlayerIndex, players, directio
       reverse_successful: true,
       new_direction: newDirection,
       next_player: nextPlayer,
-      direction_changed: true
+      direction_changed: true,
     };
   } catch (error) {
     console.error("Error playing reverse card:", error);
@@ -599,16 +653,21 @@ const drawUntilPlayable = async (playerHand, deck, currentCard) => {
     // Función para verificar si una carta es jugable
     const isCardPlayable = (card, topCard) => {
       // Lógica simplificada: una carta es jugable si coincide en color o valor
-      const cardColor = card.split('_')[0];
-      const cardValue = card.split('_')[1];
-      const topColor = currentCard.split('_')[0];
-      const topValue = currentCard.split('_')[1];
-      
+      const cardColor = card.split("_")[0];
+      const cardValue = card.split("_")[1];
+      const topColor = currentCard.split("_")[0];
+      const topValue = currentCard.split("_")[1];
+
       return cardColor === topColor || cardValue === topValue;
     };
 
     // Función recursiva con acumulador para memorizar resultados
-    const drawRecursive = async (currentHand, currentDeck, drawnCards = [], attempts = 0) => {
+    const drawRecursive = async (
+      currentHand,
+      currentDeck,
+      drawnCards = [],
+      attempts = 0
+    ) => {
       // Límite de seguridad para evitar bucles infinitos
       if (attempts > 10 || currentDeck.length === 0) {
         return {
@@ -616,20 +675,22 @@ const drawUntilPlayable = async (playerHand, deck, currentCard) => {
           drawn_cards: drawnCards,
           final_hand: currentHand,
           attempts: attempts,
-          reason: attempts > 10 ? "max_attempts_reached" : "deck_empty"
+          reason: attempts > 10 ? "max_attempts_reached" : "deck_empty",
         };
       }
 
       // Verificar si alguna carta en la mano actual es jugable
-      const playableCard = currentHand.find(card => isCardPlayable(card, currentCard));
-      
+      const playableCard = currentHand.find((card) =>
+        isCardPlayable(card, currentCard)
+      );
+
       if (playableCard) {
         return {
           success: true,
           drawn_cards: drawnCards,
           final_hand: currentHand,
           playable_card: playableCard,
-          attempts: attempts
+          attempts: attempts,
         };
       }
 
@@ -638,7 +699,7 @@ const drawUntilPlayable = async (playerHand, deck, currentCard) => {
         const drawnCard = currentDeck.shift(); // Remover la primera carta del mazo
         const newHand = [...currentHand, drawnCard];
         const newDrawnCards = [...drawnCards, drawnCard];
-        
+
         // Llamada recursiva con el estado actualizado
         return drawRecursive(newHand, currentDeck, newDrawnCards, attempts + 1);
       }
@@ -649,18 +710,18 @@ const drawUntilPlayable = async (playerHand, deck, currentCard) => {
         drawn_cards: drawnCards,
         final_hand: currentHand,
         attempts: attempts,
-        reason: "deck_empty"
+        reason: "deck_empty",
       };
     };
 
     // Iniciar el proceso recursivo
     const result = await drawRecursive(playerHand, [...deck]);
-    
+
     return {
       ...result,
       initial_hand_size: playerHand.length,
       final_hand_size: result.final_hand.length,
-      cards_drawn: result.drawn_cards.length
+      cards_drawn: result.drawn_cards.length,
     };
   } catch (error) {
     console.error("Error drawing until playable:", error);
@@ -676,47 +737,51 @@ const isPlayerTurn = async (gameId, userId) => {
 
 const getCurrentPlayerIndex = async (gameId, userId) => {
   const players = await getPlayersInGame(gameId);
-  return players.findIndex(p => p.id === userId);
+  return players.findIndex((p) => p.id === userId);
 };
 
 const getCurrentPlayer = async (gameId) => {
   const game = await Game.findByPk(gameId);
   if (!game || !game.currentPlayerId) return null;
-  
+
   const players = await getPlayersInGame(gameId);
-  return players.find(p => p.id === game.currentPlayerId);
+  return players.find((p) => p.id === game.currentPlayerId);
 };
+
+const getPlayersInGameRef = getPlayersInGame;
 
 const validateCardPlay = async (gameId, cardId, color) => {
   // Lógica simplificada de validación
   const topCard = await cardService.getTopCard(gameId);
   if (!topCard) return true;
-  
+
   // Validar por color o valor
-  const cardColor = color || cardId.split('_')[0];
-  const cardValue = cardId.split('_')[1];
-  const topColor = topCard.split('_')[0];
-  const topValue = topCard.split('_')[1];
-  
+  const cardColor = color || cardId.split("_")[0];
+  const cardValue = cardId.split("_")[1];
+  const topColor = topCard.split("_")[0];
+  const topValue = topCard.split("_")[1];
+
   return cardColor === topColor || cardValue === topValue;
 };
 
 const getCardValue = (card) => {
   if (!card) return 0;
-  const value = card.split('_')[1];
-  
-  if (value === 'skip' || value === 'reverse' || value === 'draw2') {
+  const cardValue =
+    typeof card === "object" ? card.value || card.card?.value || "" : card;
+  const value = cardValue.split("_")[1];
+
+  if (value === "skip" || value === "reverse" || value === "draw2") {
     return 20;
-  } else if (value === 'wild' || value === 'wild4') {
+  } else if (value === "wild" || value === "wild4" || value === "wild_draw4") {
     return 50;
+  } else if (value === undefined || value === null || value === "") {
+    return 0; // Para cartas inválidas
   } else if (isNaN(value)) {
     return 10; // Letras como A, B, C, etc.
   } else {
     return parseInt(value) || 0;
   }
 };
-
-
 
 export default {
   createGame,
@@ -747,5 +812,6 @@ export default {
   playSkipCard,
   playReverseCard,
   getCurrentPlayer,
-  getCardValue
+  getCardValue,
+  getPlayersInGameRef,
 };

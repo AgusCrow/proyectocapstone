@@ -6,7 +6,7 @@ class LastCache {
     this.timers = new Map();
   }
 
-  set(key, value){
+  set(key, value) {
     // Eliminar entrada existente si existe
     if (this.cache.has(key)) {
       this.delete(key);
@@ -21,7 +21,7 @@ class LastCache {
     // Establecer nueva entrada
     this.cache.set(key, {
       value,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     // Configurar temporizador de expiración
@@ -32,9 +32,9 @@ class LastCache {
     this.timers.set(key, timer);
   }
 
-  get(key){
+  get(key) {
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       return undefined;
     }
@@ -65,7 +65,7 @@ class LastCache {
 
   clear() {
     this.cache.clear();
-    this.timers.forEach(timer => clearTimeout(timer));
+    this.timers.forEach((timer) => clearTimeout(timer));
     this.timers.clear();
   }
 
@@ -78,52 +78,52 @@ class LastCache {
   }
 
   values() {
-    return Array.from(this.cache.values()).map(entry => entry.value);
+    return Array.from(this.cache.values()).map((entry) => entry.value);
   }
 }
 
 // Configuración por defecto
 const defaultConfig = {
-  max: 100,           // Máximo número de entradas en caché
-  maxAge: 60000,       // Tiempo de expiración en milisegundos (1 minuto)
-  enabled: true,       // Habilitar/deshabilitar caché
-  debug: false,        // Modo debug para logging
-  keyGenerator: null  // Función personalizada para generar claves
+  max: 100, // Máximo número de entradas en caché
+  maxAge: 60000, // Tiempo de expiración en milisegundos (1 minuto)
+  enabled: true, // Habilitar/deshabilitar caché
+  debug: false, // Modo debug para logging
+  keyGenerator: null, // Función personalizada para generar claves
 };
 
 // Función para generar claves de caché basadas en método HTTP y URL
 const defaultKeyGenerator = (req) => {
   const method = req.method.toUpperCase();
   const url = req.originalUrl || req.url;
-  const queryString = req.url.split('?')[1] || '';
-  
+  const queryString = req.url.split("?")[1] || "";
+
   // Incluir parámetros de consulta en la clave para diferenciar peticiones
-  const key = `${method}:${url}${queryString ? '?' + queryString : ''}`;
-  
+  const key = `${method}:${url}${queryString ? "?" + queryString : ""}`;
+
   return key;
 };
 
 // Función para cargar configuración desde entorno o archivo JSON
 const loadConfig = (customConfig = {}) => {
   const config = { ...defaultConfig, ...customConfig };
-  
+
   // Sobrescribir con variables de entorno si existen
   if (process.env.CACHE_MAX) {
     config.max = parseInt(process.env.CACHE_MAX);
   }
-  
+
   if (process.env.CACHE_MAX_AGE) {
     config.maxAge = parseInt(process.env.CACHE_MAX_AGE);
   }
-  
+
   if (process.env.CACHE_ENABLED) {
-    config.enabled = process.env.CACHE_ENABLED.toLowerCase() === 'true';
+    config.enabled = process.env.CACHE_ENABLED.toLowerCase() === "true";
   }
-  
+
   if (process.env.CACHE_DEBUG) {
-    config.debug = process.env.CACHE_DEBUG.toLowerCase() === 'true';
+    config.debug = process.env.CACHE_DEBUG.toLowerCase() === "true";
   }
-  
+
   return config;
 };
 
@@ -147,35 +147,37 @@ const cacheMiddleware = (customConfig = {}) => {
     // Si la caché está deshabilitada, continuar sin procesar
     if (!config.enabled) {
       if (config.debug) {
-        console.log('[Cache] Cache disabled, skipping...');
+        console.log("[Cache] Cache disabled, skipping...");
       }
       return next();
     }
 
     // Generar clave de caché
     const cacheKey = keyGenerator(req);
-    
+
     if (config.debug) {
       console.log(`[Cache] Generated key: ${cacheKey}`);
     }
 
     // Intentar obtener respuesta de caché
     const cachedResponse = cache.get(cacheKey);
-    
+
     if (cachedResponse) {
       if (config.debug) {
         console.log(`[Cache] Cache hit for key: ${cacheKey}`);
       }
-      
+
       // Restaurar headers de la respuesta cacheada
       if (cachedResponse.headers) {
         Object.entries(cachedResponse.headers).forEach(([key, value]) => {
           res.setHeader(key, value);
         });
       }
-      
+
       // Enviar respuesta cacheada
-      return res.status(cachedResponse.statusCode || 200).json(cachedResponse.data);
+      return res
+        .status(cachedResponse.statusCode || 200)
+        .json(cachedResponse.data);
     }
 
     if (config.debug) {
@@ -184,37 +186,37 @@ const cacheMiddleware = (customConfig = {}) => {
 
     // Almacenar el método original res.json
     const originalJson = res.json;
-    
+
     // Sobrescribir res.json para interceptar la respuesta
-    res.json = function(data) {
+    res.json = function (data) {
       // Restaurar el método original
       res.json = originalJson;
-      
+
       // Crear objeto de respuesta para caché
       const responseToCache = {
         data,
         statusCode: res.statusCode,
         headers: {
-          'Content-Type': res.get('Content-Type') || 'application/json',
-          'X-Cache': 'HIT',
-          'X-Cache-Key': cacheKey,
-          'X-Cache-Timestamp': Date.now().toString()
-        }
+          "Content-Type": res.get("Content-Type") || "application/json",
+          "X-Cache": "HIT",
+          "X-Cache-Key": cacheKey,
+          "X-Cache-Timestamp": Date.now().toString(),
+        },
       };
-      
+
       // Almacenar en caché solo para respuestas exitosas
       if (res.statusCode >= 200 && res.statusCode < 300) {
         cache.set(cacheKey, responseToCache);
-        
+
         if (config.debug) {
           console.log(`[Cache] Response cached for key: ${cacheKey}`);
           console.log(`[Cache] Cache size: ${cache.size()}/${config.max}`);
         }
-        
+
         // Añadir header indicando que la respuesta fue cacheada
-        res.setHeader('X-Cache', 'MISS');
+        res.setHeader("X-Cache", "MISS");
       }
-      
+
       // Llamar al método original con los datos
       return originalJson.call(this, data);
     };
@@ -230,7 +232,7 @@ const cacheUtils = {
   clear: () => {
     if (cacheInstance) {
       cacheInstance.clear();
-      console.log('[Cache] Cache cleared');
+      console.log("[Cache] Cache cleared");
     }
   },
 
@@ -247,12 +249,12 @@ const cacheUtils = {
     if (!cacheInstance) {
       return { size: 0, max: 0, hitRate: 0 };
     }
-    
+
     return {
       size: cacheInstance.size(),
       max: cacheInstance.max,
       keys: Array.from(cacheInstance.keys()),
-      hitRate: 'N/A' // Se podría implementar un sistema de estadísticas más avanzado
+      hitRate: "N/A", // Se podría implementar un sistema de estadísticas más avanzado
     };
   },
 
@@ -272,8 +274,8 @@ const cacheUtils = {
   reconfigure: (newConfig) => {
     const config = loadConfig(newConfig);
     cacheInstance = new LastCache(config.max, config.maxAge);
-    console.log('[Cache] Cache reconfigured with new settings');
-  }
+    console.log("[Cache] Cache reconfigured with new settings");
+  },
 };
 
 // Middleware para invalidar caché basado en patrones
@@ -284,39 +286,47 @@ const invalidateCache = (pattern) => {
     }
 
     const keysToDelete = [];
-    
+
     // Buscar claves que coincidan con el patrón
     for (const key of cacheInstance.keys()) {
       if (key.includes(pattern)) {
         keysToDelete.push(key);
       }
     }
-    
+
     // Eliminar entradas coincidentes
-    keysToDelete.forEach(key => {
+    keysToDelete.forEach((key) => {
       cacheInstance.delete(key);
     });
-    
+
     if (keysToDelete.length > 0) {
-      console.log(`[Cache] Invalidated ${keysToDelete.length} entries matching pattern: ${pattern}`);
+      console.log(
+        `[Cache] Invalidated ${keysToDelete.length} entries matching pattern: ${pattern}`
+      );
     }
-    
+
     next();
   };
 };
 
 // Middleware para forzar no-caché en rutas específicas
 const noCache = (req, res, next) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  res.setHeader('Surrogate-Control', 'no-store');
+  res.setHeader(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate"
+  );
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  res.setHeader("Surrogate-Control", "no-store");
   next();
 };
 
-export default cacheMiddleware;
 export {
-  cacheUtils, defaultKeyGenerator, invalidateCache, LastCache,
-  loadConfig, noCache
+  cacheMiddleware as default,
+  cacheUtils,
+  defaultKeyGenerator,
+  invalidateCache,
+  LastCache,
+  loadConfig,
+  noCache,
 };
-
