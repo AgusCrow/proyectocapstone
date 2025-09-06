@@ -85,6 +85,17 @@ const getCardsByType = async (type) => {
   return map(identity)(cards);
 };
 
+// Obtener la carta superior del mazo para un juego dado
+// Nota: Implementación simplificada. Retorna la primera carta disponible
+// en formato "color_valor" que es lo que espera gameService.
+const getTopCard = async (gameId) => {
+  const top = await Card.findOne({ order: [['createdAt', 'ASC']] });
+  if (!top) return null;
+  const color = top.color || 'red';
+  const value = top.value || '0';
+  return `${color}_${value}`;
+};
+
 export default {
   initDeck,
   createCard,
@@ -94,4 +105,5 @@ export default {
   listCards,
   getCardsByColor,
   getCardsByType,
+  getTopCard,
 };

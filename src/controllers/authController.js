@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { Player } from '../orm/index.js';
 
-const SECRET = process.env.JWT_SECRET;
+const SECRET = process.env.JWT_SECRET || 'secreto_ultra_seguro';
 
 const register = async (req, res) => {
   const { username, email, password } = req.body;
@@ -47,9 +47,13 @@ const profile = async (req, res) => {
   const token = auth.split(' ')[1];
   try {
     const decoded = jwt.verify(token, SECRET);
-        return res.json({ 
-      username: decoded.username, 
-      id: decoded.id,
+    const user = await Player.findByPk(decoded.id);
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    return res.json({ 
+      username: user.username, 
+      id: user.id,
       message: 'Profile retrieved from token'
     });
   } catch (e) {

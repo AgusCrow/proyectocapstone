@@ -742,5 +742,10 @@ export default {
   getPlayerCards,
   getPlayerScores,
   handleMultiplayer,
-  logGameError
+  logGameError,
+  drawUntilPlayable,
+  playSkipCard,
+  playReverseCard,
+  getCurrentPlayer,
+  getCardValue
 };

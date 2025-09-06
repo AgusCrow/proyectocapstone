@@ -21,6 +21,7 @@ const {
     head
 } = functional;
 
+
 // Funciones puras para validación
 const isValidPlayerData = (data) => {
     const requiredFields = ['username', 'email', 'password'];
@@ -42,10 +43,6 @@ const isEmailUnique = curry(async (email, players) => {
     return !players.some(player => player.email === email);
 });
 
-// Función pura para validar username único
-const isUsernameUnique = curry(async (username, players) => {
-    return !players.some(player => player.username === username);
-});
 
 // Función pura para encontrar jugador por criterio
 const findPlayerBy = curry((predicate) => async (players) => {
@@ -53,29 +50,23 @@ const findPlayerBy = curry((predicate) => async (players) => {
 });
 
 // Crear un nuevo jugador usando programación funcional
-const createPlayer = async (data) => {
-    return tryCatch(
-        async () => {
-            // Validar datos de entrada
-            if (!isValidPlayerData(data)) {
-                throw new Error('Datos de jugador inválidos');
-            }
-
-            // Sanitizar datos
-            const sanitizedData = sanitizePlayerData(data);
-
-            // Crear jugador
-            const player = await Player.create(sanitizedData);
-
-            // Transformar y retornar datos
-            return transformPlayerData(player.toJSON());
-        }
-    )(
-        (error) => {
-            console.error('Error creating player:', error);
-            throw error;
-        }
-    )();
+// En playerService.js
+const createPlayer = async (playerData) => {
+  try {
+    // Validar datos de entrada
+    if (!isValidPlayerData(playerData)) {
+      throw new Error('Datos de jugador inválidos');
+    }
+    
+    const player = await Player.create(playerData);
+    return player.toJSON(); // Devuelve solo los datos, no la instancia del modelo
+  } catch (error) {
+    // Re-lanzar errores de validación de Sequelize
+    if (error.name === 'SequelizeValidationError') {
+      throw new Error('Validation error');
+    }
+    throw error;
+  }
 };
 
 // Obtener jugador por ID usando programación funcional
@@ -306,5 +297,7 @@ export default {
     findPlayerByEmail,
     getActivePlayers,
     validateCredentials,
-    getPlayerStats
+    getPlayerStats,
+    isEmailUnique,
+    findPlayerBy
 };

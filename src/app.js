@@ -87,7 +87,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something broke!' });
 });
 
- app.listen(port, () => {
+ if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
     console.log(`Cache middleware enabled: ${cacheConfig.enabled}`);
     console.log(`Cache max entries: ${cacheConfig.max}`);
@@ -97,5 +98,6 @@ app.use((err, req, res, next) => {
       console.log('Cache debug mode enabled');
     }
   });
+ }
 
 export default app;
