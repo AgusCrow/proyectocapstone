@@ -1,0 +1,4 @@
+username,password,email,gameName,cardColor,cardValue,cardType
+testuser1,password123,test1@example.com,Partida1,red,5,normal
+testuser2,password123,test2@example.com,Partida2,blue,7,normal
+testuser3,password123,test3@example.com,Partida3,green,skip,special

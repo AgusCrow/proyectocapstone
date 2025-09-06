@@ -1,21 +1,20 @@
 module.exports = {
   testEnvironment: 'node',
-  testTimeout: 10000,
-  setupFiles: ['<rootDir>/tests/setup.js'],
-  testMatch: [
-    '<rootDir>/tests/**/*.test.js'
-  ],
-  collectCoverageFrom: [
-    'src/**/*.js',
-    '!src/**/*.test.js'
-  ],
+  moduleFileExtensions: ['js'],
+  collectCoverage: true,
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  verbose: true,
-  transform: {
-    '^.+\\.js$': 'babel-jest'
-  },
-  moduleFileExtensions: ['js', 'json'],
-  testPathIgnorePatterns: ['/node_modules/'],
-  collectCoverage: false
-}; 
+  collectCoverageFrom: [
+    'src/**/*.js',
+    '!src/database/init.js',
+    '!src/orm/index.js'
+  ],
+  coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70
+    }
+  }
+};

@@ -197,21 +197,6 @@ const transformPlayers = pipe(
 );
 ```
 
-## Base de Datos
-
-### Modelos
-
-- **Player**: Jugadores del sistema
-- **Game**: Juegos creados
-- **Card**: Tarjetas del juego UNO
-- **Score**: Puntuaciones históricas
-
-### Relaciones
-
-- Player ↔ Game (Many-to-Many)
-- Player → Score (One-to-Many)
-- Game → Score (One-to-Many)
-
 ## Testing
 
 ### Estructura de Tests
@@ -278,64 +263,10 @@ npm run test:watch    # Tests en modo watch
 npm run test:coverage # Tests con cobertura
 
 # Base de datos
-npm run db:sync       # Sincronizar modelos
 npm run db:migrate    # Ejecutar migraciones
-```
-
-## Contribución
-
-1. Fork el proyecto
-2. Crear rama feature (`git checkout -b feature/AmazingFeature`)
-3. Commit cambios (`git commit -m 'Add AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abrir Pull Request
-
-## Frontend React
-
-El proyecto ahora incluye un **frontend completo** desarrollado con React, Vite y Tailwind CSS.
-
-### 🎮 Características del Frontend
-
-- **Interfaz Moderna**: Diseño elegante con gradientes y efectos de cristal
-- **Autenticación Visual**: Login y registro con validaciones
-- **Dashboard Interactivo**: Gestión de juegos y estadísticas
-- **Sala de Juego Visual**: Interfaz completa del UNO con cartas animadas
-- **Responsive Design**: Optimizado para móviles y desktop
-- **Tiempo Real**: Actualizaciones automáticas del estado del juego
-
-### 🚀 Ejecutar el Frontend
-
-```bash
-# Navegar al directorio frontend
-cd frontend
-
-# Instalar dependencias
-npm install
-
-# Ejecutar en modo desarrollo
-npm run dev
-```
-
-El frontend estará disponible en `http://localhost:3001`
-
-### 📁 Estructura del Frontend
-
-```
-frontend/
-├── src/
-│   ├── components/          # Componentes reutilizables
-│   ├── pages/              # Páginas de la aplicación
-│   ├── stores/             # Gestión de estado (Zustand)
-│   ├── services/           # Servicios de API
-│   └── ...
-├── package.json            # Dependencias del frontend
-└── README.md               # Documentación del frontend
-```
-
-Para más detalles, consulta el [README del Frontend](frontend/README.md).
+``` 
 
 ## Autor
 
 Agustin De Luca
-
 
