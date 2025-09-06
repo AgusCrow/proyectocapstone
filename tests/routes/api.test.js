@@ -232,7 +232,6 @@ describe('API Routes Integration Tests', () => {
           .set('Authorization', 'Bearer mock.jwt.token')
           .send(updateData)
           .expect(200);
-
         expect(response.body).toHaveProperty('id');
       });
     });

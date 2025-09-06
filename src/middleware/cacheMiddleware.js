@@ -321,12 +321,13 @@ const noCache = (req, res, next) => {
   next();
 };
 
+export default cacheMiddleware;
 export {
-  cacheMiddleware as default,
+  cacheMiddleware,
   cacheUtils,
-  defaultKeyGenerator,
-  invalidateCache,
   LastCache,
   loadConfig,
+  defaultKeyGenerator,
+  invalidateCache,
   noCache,
 };

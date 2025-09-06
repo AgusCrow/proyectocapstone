@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 jest.mock('../../src/services/gameService.js', () => ({
   __esModule: true,
   default: {

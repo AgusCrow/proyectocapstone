@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 // statsController.test.js
 import statsController from '../src/controllers/statsController.js';
 import ApiStat from '../src/models/apiStat.js';
