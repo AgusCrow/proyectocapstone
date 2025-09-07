@@ -6,7 +6,6 @@ const createGame = async (req, res) => {
     const game = await gameService.createGame(req.body);
     res.status(201).json(game);
   } catch (error) {
-    console.error('Error creating game:', error)
     res.status(500).json({ error: error.message });
   }
 };

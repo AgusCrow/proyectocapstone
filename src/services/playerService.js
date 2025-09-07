@@ -49,8 +49,7 @@ const findPlayerBy = curry((predicate) => async (players) => {
     return find(predicate)(players);
 });
 
-// Crear un nuevo jugador usando programación funcional
-// En playerService.js
+// Crear un nuevo jugador 
 const createPlayer = async (playerData) => {
   try {
     // Validar datos de entrada
@@ -69,7 +68,7 @@ const createPlayer = async (playerData) => {
   }
 };
 
-// Obtener jugador por ID usando programación funcional
+// Obtener jugador por ID
 const getPlayerById = async (id) => {
     return tryCatch(
         async () => {
@@ -93,7 +92,7 @@ const getPlayerById = async (id) => {
     )();
 };
 
-// Actualizar jugador usando programación funcional
+// Actualizar jugado
 const updatePlayer = async (id, data) => {
     return tryCatch(
         async () => {
@@ -122,7 +121,7 @@ const updatePlayer = async (id, data) => {
     )();
 };
 
-// Eliminar jugador usando programación funcional
+// Eliminar jugador
 const deletePlayer = async (id) => {
     return tryCatch(
         async () => {
@@ -147,7 +146,7 @@ const deletePlayer = async (id) => {
     )();
 };
 
-// Listar todos los jugadores usando programación funcional
+// Listar todos los jugadores
 const listPlayers = async () => {
     return tryCatch(
         async () => {
@@ -166,7 +165,7 @@ const listPlayers = async () => {
     )();
 };
 
-// Buscar jugador por nombre de usuario usando programación funcional
+// Buscar jugador por nombre de usuario
 const findPlayerByUsername = async (username) => {
     return tryCatch(
         async () => {
@@ -193,7 +192,7 @@ const findPlayerByUsername = async (username) => {
     )();
 };
 
-// Buscar jugador por email usando programación funcional
+// Buscar jugador por email
 const findPlayerByEmail = async (email) => {
     return tryCatch(
         async () => {
@@ -220,7 +219,7 @@ const findPlayerByEmail = async (email) => {
     )();
 };
 
-// Obtener jugadores activos usando programación funcional
+// Obtener jugadores activos
 const getActivePlayers = async () => {
     return tryCatch(
         async () => {
@@ -240,7 +239,7 @@ const getActivePlayers = async () => {
     )();
 };
 
-// Validar credenciales de jugador usando programación funcional
+// Validar credenciales de jugador
 const validateCredentials = async (username, password) => {
     return tryCatch(
         async () => {
@@ -253,9 +252,6 @@ const validateCredentials = async (username, password) => {
             if (isNil(player)) {
                 return null;
             }
-
-            // Aquí se debería comparar con hash de contraseña
-            // Por simplicidad, asumimos que la contraseña está hasheada
             return player;
         }
     )(
@@ -266,7 +262,7 @@ const validateCredentials = async (username, password) => {
     )();
 };
 
-// Estadísticas de jugadores usando programación funcional
+// Estadísticas de jugadores
 const getPlayerStats = async () => {
     return tryCatch(
         async () => {

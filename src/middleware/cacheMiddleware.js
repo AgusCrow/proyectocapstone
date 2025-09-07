@@ -254,7 +254,7 @@ const cacheUtils = {
       size: cacheInstance.size(),
       max: cacheInstance.max,
       keys: Array.from(cacheInstance.keys()),
-      hitRate: "N/A", // Se podría implementar un sistema de estadísticas más avanzado
+      hitRate: "N/A",
     };
   },
 

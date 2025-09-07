@@ -19,6 +19,8 @@ describe('playerCardController', () => {
       status: jest.fn().mockReturnThis()
     };
     next = jest.fn();
+    // Mock console.error to verify it's called
+    console.error = jest.fn();
   });
 
   describe('getPlayerHand', () => {
@@ -43,6 +45,32 @@ describe('playerCardController', () => {
       
       await playerCardController.getPlayerHand(req, res);
       
+      expect(console.error).toHaveBeenCalledWith('Error getting player hand:', error);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Error al obtener las cartas en mano' });
+    });
+
+    it('should handle missing gameId parameter', async () => {
+      // Not setting req.params.gameId
+      const error = new Error('Invalid gameId');
+      playerCardService.getPlayerHand.mockRejectedValue(error);
+      
+      await playerCardController.getPlayerHand(req, res);
+      
+      expect(console.error).toHaveBeenCalledWith('Error getting player hand:', error);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Error al obtener las cartas en mano' });
+    });
+
+    it('should handle missing user object', async () => {
+      req.params.gameId = 'game1';
+      req.user = undefined;
+      const error = new Error('User not authenticated');
+      playerCardService.getPlayerHand.mockRejectedValue(error);
+      
+      await playerCardController.getPlayerHand(req, res);
+      
+      expect(console.error).toHaveBeenCalledWith('Error getting player hand:', error);
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({ error: 'Error al obtener las cartas en mano' });
     });
@@ -84,6 +112,7 @@ describe('playerCardController', () => {
       
       await playerCardController.playCard(req, res);
       
+      expect(console.error).toHaveBeenCalledWith('Error playing card:', error);
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ error: error.message });
     });
@@ -95,6 +124,32 @@ describe('playerCardController', () => {
       
       await playerCardController.playCard(req, res);
       
+      expect(console.error).toHaveBeenCalledWith('Error playing card:', error);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Error al jugar la carta' });
+    });
+
+    it('should handle missing user object', async () => {
+      req.body.playerCardId = 'card123';
+      req.user = undefined;
+      const error = new Error('User not authenticated');
+      playerCardService.playCard.mockRejectedValue(error);
+      
+      await playerCardController.playCard(req, res);
+      
+      expect(console.error).toHaveBeenCalledWith('Error playing card:', error);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Error al jugar la carta' });
+    });
+
+    it('should handle empty body', async () => {
+      req.body = undefined;
+      const error = new Error('Cannot read property \'playerCardId\' of undefined');
+      playerCardService.playCard.mockRejectedValue(error);
+      
+      await playerCardController.playCard(req, res);
+      
+      expect(console.error).toHaveBeenCalledWith('Error playing card:', error);
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({ error: 'Error al jugar la carta' });
     });
@@ -121,6 +176,7 @@ describe('playerCardController', () => {
       
       await playerCardController.drawCard(req, res);
       
+      expect(console.error).toHaveBeenCalledWith('Error drawing card:', error);
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ error: error.message });
     });
@@ -132,6 +188,32 @@ describe('playerCardController', () => {
       
       await playerCardController.drawCard(req, res);
       
+      expect(console.error).toHaveBeenCalledWith('Error drawing card:', error);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Error al robar carta' });
+    });
+
+    it('should handle missing gameId parameter', async () => {
+      // Not setting req.params.gameId
+      const error = new Error('Invalid gameId');
+      playerCardService.drawCard.mockRejectedValue(error);
+      
+      await playerCardController.drawCard(req, res);
+      
+      expect(console.error).toHaveBeenCalledWith('Error drawing card:', error);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Error al robar carta' });
+    });
+
+    it('should handle missing user object', async () => {
+      req.params.gameId = 'game1';
+      req.user = undefined;
+      const error = new Error('User not authenticated');
+      playerCardService.drawCard.mockRejectedValue(error);
+      
+      await playerCardController.drawCard(req, res);
+      
+      expect(console.error).toHaveBeenCalledWith('Error drawing card:', error);
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({ error: 'Error al robar carta' });
     });
@@ -158,8 +240,33 @@ describe('playerCardController', () => {
       
       await playerCardController.getPlayedCards(req, res);
       
+      expect(console.error).toHaveBeenCalledWith('Error getting played cards:', error);
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({ error: 'Error al obtener cartas jugadas' });
+    });
+
+    it('should handle missing gameId parameter', async () => {
+      // Not setting req.params.gameId
+      const error = new Error('Invalid gameId');
+      playerCardService.getPlayedCards.mockRejectedValue(error);
+      
+      await playerCardController.getPlayedCards(req, res);
+      
+      expect(console.error).toHaveBeenCalledWith('Error getting played cards:', error);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Error al obtener cartas jugadas' });
+    });
+
+    it('should return empty array when no played cards', async () => {
+      req.params.gameId = 'game1';
+      playerCardService.getPlayedCards.mockResolvedValue([]);
+      
+      await playerCardController.getPlayedCards(req, res);
+      
+      expect(res.json).toHaveBeenCalledWith({
+        game_id: 'game1',
+        played_cards: []
+      });
     });
   });
 
@@ -197,6 +304,19 @@ describe('playerCardController', () => {
       
       await playerCardController.getLastPlayedCard(req, res);
       
+      expect(console.error).toHaveBeenCalledWith('Error getting last played card:', error);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Error al obtener la última carta jugada' });
+    });
+
+    it('should handle missing gameId parameter', async () => {
+      // Not setting req.params.gameId
+      const error = new Error('Invalid gameId');
+      playerCardService.getLastPlayedCard.mockRejectedValue(error);
+      
+      await playerCardController.getLastPlayedCard(req, res);
+      
+      expect(console.error).toHaveBeenCalledWith('Error getting last played card:', error);
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({ error: 'Error al obtener la última carta jugada' });
     });

@@ -28,6 +28,4 @@ describe('Stats Controller', () => {
       expect(res.json).toHaveBeenCalledWith(mockStats);
     });
   });
-
-  // Añade pruebas para otros métodos
 });

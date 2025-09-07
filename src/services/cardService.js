@@ -86,8 +86,6 @@ const getCardsByType = async (type) => {
 };
 
 // Obtener la carta superior del mazo para un juego dado
-// Nota: Implementación simplificada. Retorna la primera carta disponible
-// en formato "color_valor" que es lo que espera gameService.
 const getTopCard = async (gameId) => {
   const top = await Card.findOne({ order: [['createdAt', 'ASC']] });
   if (!top) return null;
