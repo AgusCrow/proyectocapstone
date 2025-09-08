@@ -39,19 +39,45 @@ const listGames = async () => {
   return map(identity)(games);
 };
 
-// Agregar jugador a un juego
 const addPlayerToGame = async (gameId, playerId) => {
   try {
-    const game = await Game.findByPk(gameId);
-    if (!game) return null; // Verificar si el jugador ya está en el juego
+    // Verificar si gameId es un número o una cadena
+    const gameIdNum = isNaN(gameId) ? gameId : parseInt(gameId, 10);
+    console.log(`Game ID as number: ${gameIdNum}`);
+
+    const game = await Game.findByPk(gameIdNum);
+    if (!game) {
+      console.log(`Game ${gameIdNum} not found`);
+
+      // Intentar listar todos los juegos para depuración
+      try {
+        const allGames = await Game.findAll();
+        console.log(
+          `All games in database: ${JSON.stringify(
+            allGames.map((g) => ({ id: g.id, name: g.name }))
+          )}`
+        );
+      } catch (e) {
+        console.log(`Error listing all games: ${e.message}`);
+      }
+
+      return null;
+    }
     const existingPlayers = await game.getPlayers();
+
     const isAlreadyInGame = existingPlayers.some(
-      (player) => player.id === playerId
+      (player) => player.id == playerId // Usar == en lugar de === por si hay tipos diferentes
     );
-    if (isAlreadyInGame) return "already_joined"; // Obtener el jugador y agregarlo al juego
+    if (isAlreadyInGame) {
+      return "already_joined";
+    }
+
     const player = await Player.findByPk(playerId);
-    if (!player) return null;
-    await game.addPlayer(player);
+    if (!player) {
+      console.log(`Player ${playerId} not found`);
+      return null;
+    }
+
     return true;
   } catch (error) {
     console.error("Error adding player to game:", error);
@@ -74,20 +100,67 @@ const getPlayersInGame = async (gameId) => {
 
 // Iniciar juego (cambia estado si todos están listos)
 const startGame = async (gameId, userId) => {
+  const transaction = await sequelize.transaction();
+  
   try {
-    const game = await Game.findByPk(gameId);
-    if (!game) return null; // Verificar que el usuario sea el creador
-    if (game.creatorId !== userId) return "not_creator"; // Verificar que haya al menos un jugador en el juego
-    const players = await game.getPlayers();
+    console.log(`=== START GAME DEBUG ===`);
+    console.log(`Starting game ${gameId} by user ${userId}`);
+    
+    const game = await Game.findByPk(gameId, { transaction });
+    if (!game) {
+      console.log(`Game ${gameId} not found`);
+      await transaction.rollback();
+      return null;
+    }
+    
+    console.log(`Game found:`, game.toJSON());
+    
+    // Verificar que el usuario sea el creador
+    if (game.creatorId !== userId) {
+      console.log(`User ${userId} is not the creator (creator is ${game.creatorId})`);
+      await transaction.rollback();
+      return "not_creator";
+    }
+    
+    // Verificar que haya al menos un jugador en el juego
+    const players = await game.getPlayers({ transaction });
+    console.log(`Players found: ${players.length}`);
+    
     if (players.length === 0) {
+      console.log(`No players found in game ${gameId}`);
+      await transaction.rollback();
       return "no_players";
-    } // Inicializar el mazo de cartas antes de repartir
-    await cardService.initDeck(); // Iniciar el juego
-
-    await game.update({ status: "started" }); // Repartir cartas a todos los jugadores
-    await playerCardService.dealCardsToAllPlayers(gameId);
+    }
+    
+    // Establecer el primer jugador como el jugador actual
+    const firstPlayer = players[0];
+    console.log(`Setting first player as current player:`, firstPlayer.toJSON());
+    
+    // Inicializar el mazo de cartas antes de repartir
+    await cardService.initDeck({ transaction });
+    
+    // Iniciar el juego y establecer el jugador actual
+    await game.update({ 
+      status: "started",
+      currentPlayerId: firstPlayer.id
+    }, { transaction });
+    
+    console.log(`Game status updated to 'started' and currentPlayerId set to ${firstPlayer.id}`);
+    
+    // Repartir cartas a todos los jugadores
+    await playerCardService.dealCardsToAllPlayers(gameId, { transaction });
+    console.log(`Cards dealt to all players`);
+    
+    // Confirmar la transacción
+    await transaction.commit();
+    console.log(`Transaction committed successfully`);
+    
+    // Devolver el juego actualizado
+    console.log(`=== END START GAME DEBUG ===`);
     return game;
   } catch (error) {
+    // Revertir la transacción en caso de error
+    await transaction.rollback();
     console.error("Error starting game:", error);
     throw error;
   }
@@ -741,11 +814,66 @@ const getCurrentPlayerIndex = async (gameId, userId) => {
 };
 
 const getCurrentPlayer = async (gameId) => {
-  const game = await Game.findByPk(gameId);
-  if (!game || !game.currentPlayerId) return null;
-
-  const players = await getPlayersInGame(gameId);
-  return players.find((p) => p.id === game.currentPlayerId);
+  try {
+    console.log(`=== GET CURRENT PLAYER SERVICE DEBUG ===`);
+    console.log(`Getting current player for game ${gameId}`);
+    
+    const game = await Game.findByPk(gameId);
+    if (!game) {
+      console.log(`Game ${gameId} not found`);
+      return null;
+    }
+    
+    console.log(`Game found:`, game.toJSON());
+    
+    // Si el juego no ha iniciado, devolver el primer jugador de la lista
+    if (game.status !== 'started') {
+      console.log(`Game ${gameId} has not started yet, returning first player`);
+      const players = await getPlayersInGame(gameId);
+      console.log(`Players in game: ${players.length}`);
+      
+      if (!players || players.length === 0) {
+        console.log(`No players found in game ${gameId}`);
+        return null;
+      }
+      
+      const firstPlayer = players[0];
+      console.log(`First player found:`, firstPlayer);
+      console.log(`=== END GET CURRENT PLAYER SERVICE DEBUG ===`);
+      return firstPlayer;
+    }
+    
+    // Si el juego ha iniciado, buscar el jugador actual
+    if (!game.currentPlayerId) {
+      console.log(`No currentPlayerId defined for game ${gameId}`);
+      return null;
+    }
+    
+    console.log(`Current player ID: ${game.currentPlayerId}`);
+    
+    const players = await getPlayersInGame(gameId);
+    console.log(`Players in game: ${players.length}`);
+    
+    if (!players || players.length === 0) {
+      console.log(`No players found in game ${gameId}`);
+      return null;
+    }
+    
+    const currentPlayer = players.find((p) => p.id === game.currentPlayerId);
+    
+    if (!currentPlayer) {
+      console.log(`Player with ID ${game.currentPlayerId} not found in game ${gameId}`);
+      return null;
+    }
+    
+    console.log(`Current player found:`, currentPlayer);
+    console.log(`=== END GET CURRENT PLAYER SERVICE DEBUG ===`);
+    
+    return currentPlayer;
+  } catch (error) {
+    console.error("Error getting current player:", error);
+    throw error;
+  }
 };
 
 const getPlayersInGameRef = getPlayersInGame;

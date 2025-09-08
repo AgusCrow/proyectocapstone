@@ -335,7 +335,7 @@ describe('API Routes Integration Tests', () => {
       });
     });
 
-    describe('GET /api/games/:id', () => {
+    describe('GET /api/games/gameId', () => {
       it('debería obtener un juego por ID', async () => {
         const response = await request(app)
           .get('/api/games/1')

@@ -3,7 +3,11 @@ import gameService from "../services/gameService.js";
 // Crear un nuevo juego
 const createGame = async (req, res) => {
   try {
-    const game = await gameService.createGame(req.body);
+    const gameData = {
+      ...req.body,
+      creatorId: req.user.id
+    }
+    const game = await gameService.createGame(gameData);
     res.status(201).json(game);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -13,7 +17,7 @@ const createGame = async (req, res) => {
 // Obtener juego por ID
 const getGameById = async (req, res) => {
   try {
-    const game = await gameService.getGameById(req.params.id);
+    const game = await gameService.getGameById(req.params.gameId);
     if (!game) {
       return res.status(404).json({ error: "Juego no encontrado" });
     }
@@ -59,22 +63,34 @@ const listGames = async (req, res) => {
   }
 };
 
-// Agregar jugador a un juego
 const addPlayerToGame = async (req, res) => {
   try {
+    console.log("=== ADD PLAYER TO GAME DEBUG ===");
+    console.log("Request params:", req.params);
+    console.log("Request body:", req.body);
+    console.log("Request headers:", req.headers);
+    
     const { gameId } = req.params;
     const { playerId } = req.body;
     
+    console.log(`Extracted - gameId: ${gameId}, playerId: ${playerId}`);
+    
     const result = await gameService.addPlayerToGame(gameId, playerId);
     
+    console.log(`Service result: ${result}`);
+    
     if (result === null) {
+      console.log("Game not found");
       return res.status(404).json({ error: "Juego no encontrado" });
     } else if (result === "already_joined") {
+      console.log("Player already in game");
       return res.status(400).json({ error: "El jugador ya está en el juego" });
     }
     
+    console.log("Player added successfully");
     res.json({ message: "Jugador agregado exitosamente" });
   } catch (error) {
+    console.error("Error in addPlayerToGame controller:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -82,7 +98,7 @@ const addPlayerToGame = async (req, res) => {
 // Obtener jugadores de un juego
 const getPlayersInGame = async (req, res) => {
   try {
-    const players = await gameService.getPlayersInGame(req.params.gameId);
+    const players = await gameService.getPlayersInGame(req.params.id);
     res.json(players);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -95,7 +111,7 @@ const startGame = async (req, res) => {
     const { gameId } = req.params;
     const userId = req.user.id; // Asumiendo que el middleware de auth añade el usuario
     
-    const result = await gameService.startGame(gameId, userId);
+    const result = await gameService.startGame(gameId, userId); // CORREGIDO: usar gameId en lugar de id
     
     if (result === null) {
       return res.status(404).json({ error: "Juego no encontrado" });
@@ -114,7 +130,7 @@ const startGame = async (req, res) => {
 // Finalizar juego
 const finishGame = async (req, res) => {
   try {
-    const game = await gameService.finishGame(req.params.gameId);
+    const game = await gameService.finishGame(req.params.id);
     if (!game) {
       return res.status(404).json({ error: "Juego no encontrado" });
     }
@@ -127,10 +143,10 @@ const finishGame = async (req, res) => {
 // Remover jugador de un juego
 const removePlayerFromGame = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { id } = req.params; 
     const { playerId } = req.body;
     
-    const result = await gameService.removePlayerFromGame(gameId, playerId);
+    const result = await gameService.removePlayerFromGame(id, playerId);
     
     if (result === null) {
       return res.status(404).json({ error: "Juego no encontrado" });
@@ -143,20 +159,39 @@ const removePlayerFromGame = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 // Obtener el jugador actual
 const getCurrentPlayer = async (req, res) => {
-  const gameId = req.params.id;
+  const { gameId } = req.params;
   try {
-    const players = await gameService.getPlayersInGame(gameId);
-    if (!players || players.length === 0) {
-      return res.status(404).json({ error: "No hay jugadores en el juego" });
+    console.log(`=== GET CURRENT PLAYER CONTROLLER DEBUG ===`);
+    console.log(`Getting current player for game ${gameId}`);
+    
+    const currentPlayer = await gameService.getCurrentPlayer(gameId);
+    
+    if (!currentPlayer) {
+      console.log(`No current player found for game ${gameId}`);
+      return res.status(404).json({ error: "No hay jugador actual en el juego" });
     }
-    // Simulación: el primer jugador es el actual
-    return res.json({ game_id: gameId, current_player: players[0].username });
+    
+    console.log(`Current player found:`, currentPlayer);
+    
+    const response = {
+      game_id: gameId,
+      current_player: {
+        id: currentPlayer.id,
+        username: currentPlayer.username || currentPlayer.name || `Player ${currentPlayer.id}`,
+        name: currentPlayer.name || currentPlayer.username || `Player ${currentPlayer.id}`
+      }
+    };
+    
+    console.log(`Response:`, response);
+    console.log(`=== END GET CURRENT PLAYER CONTROLLER DEBUG ===`);
+    
+    return res.json(response);
   } catch (e) {
-    return res
-      .status(500)
-      .json({ error: "Error al obtener el jugador actual" });
+    console.error("Error in getCurrentPlayer controller:", e);
+    return res.status(500).json({ error: "Error al obtener el jugador actual" });
   }
 };
 
@@ -176,10 +211,10 @@ const getTopCard = async (req, res) => {
 // Finalizar juego (solo creador)
 const endGame = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { id } = req.params; 
     const userId = req.user.id;
     
-    const result = await gameService.endGame(gameId, userId);
+    const result = await gameService.endGame(id, userId);
     
     if (result === null) {
       return res.status(404).json({ error: "Juego no encontrado" });
@@ -193,10 +228,10 @@ const endGame = async (req, res) => {
   }
 };
 
-//  Distribución de Cartas a los Jugadores
+//  Distribución de Cartas a los Jugadores (la ruta usa gameId)
 const dealCardsToPlayers = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { gameId } = req.params; 
     const userId = req.user.id;
     
     const result = await gameService.dealCardsToPlayers(gameId, userId);
@@ -220,7 +255,7 @@ const dealCardsToPlayers = async (req, res) => {
 // Reglas para Jugar una Carta
 const playCardWithRules = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { gameId } = req.params; 
     const userId = req.user.id;
     const { cardId, color } = req.body;
     
@@ -245,7 +280,7 @@ const playCardWithRules = async (req, res) => {
 // Robar Carta cuando no se puede Jugar
 const drawCardForPlayer = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { gameId } = req.params; 
     const userId = req.user.id;
     
     const result = await gameService.drawCardForPlayer(gameId, userId);
@@ -289,7 +324,7 @@ const sayUno = async (req, res) => {
 // No decir UNO
 const challengeUno = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { gameId } = req.params; 
     const userId = req.user.id;
     const { challengedPlayerId } = req.body;
     
@@ -310,7 +345,7 @@ const challengeUno = async (req, res) => {
 // Finalización de Turno
 const endPlayerTurn = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { gameId } = req.params; 
     const userId = req.user.id;
     
     const result = await gameService.endPlayerTurn(gameId, userId);
@@ -330,7 +365,7 @@ const endPlayerTurn = async (req, res) => {
 // Detección de Fin de Juego
 const checkGameEnd = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { gameId } = req.params; 
     
     const result = await gameService.checkGameEnd(gameId);
     
@@ -347,7 +382,7 @@ const checkGameEnd = async (req, res) => {
 // Consulta de Estado del Juego
 const getGameStatus = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { gameId } = req.params; 
     
     const result = await gameService.getGameStatus(gameId);
     
@@ -364,7 +399,7 @@ const getGameStatus = async (req, res) => {
 // Historial de Movimientos
 const getMoveHistory = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { gameId } = req.params; 
     
     const result = await gameService.getMoveHistory(gameId);
     
@@ -381,7 +416,7 @@ const getMoveHistory = async (req, res) => {
 // Visualización de Cartas Propias
 const getPlayerCards = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { gameId } = req.params; 
     const userId = req.user.id;
     
     const result = await gameService.getPlayerCards(gameId, userId);
@@ -401,7 +436,7 @@ const getPlayerCards = async (req, res) => {
 // Puntajes de Jugadores
 const getPlayerScores = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { gameId } = req.params; 
     
     const result = await gameService.getPlayerScores(gameId);
     
@@ -418,7 +453,7 @@ const getPlayerScores = async (req, res) => {
 // Soporte Multijugador
 const handleMultiplayer = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { gameId } = req.params; 
     const userId = req.user.id;
     const { action } = req.body;
     
@@ -439,7 +474,7 @@ const handleMultiplayer = async (req, res) => {
 // Registro de Errores
 const logGameError = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { gameId } = req.params; 
     const userId = req.user.id;
     const { error, context } = req.body;
     
@@ -459,7 +494,7 @@ const logGameError = async (req, res) => {
 // Jugar carta de salto (Skip)
 const playSkipCard = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { gameId } = req.params; 
     const userId = req.user.id;
     const { cardPlayed, currentPlayerIndex, players, direction } = req.body;
     
@@ -478,7 +513,7 @@ const playSkipCard = async (req, res) => {
 // Jugar carta de reversa (Reverse)
 const playReverseCard = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { gameId } = req.params; 
     const userId = req.user.id;
     const { cardPlayed, currentPlayerIndex, players, direction } = req.body;
     
@@ -497,7 +532,7 @@ const playReverseCard = async (req, res) => {
 // Robar hasta tener carta jugable
 const drawUntilPlayable = async (req, res) => {
   try {
-    const { gameId } = req.params;
+    const { gameId } = req.params; 
     const userId = req.user.id;
     const { playerHand, deck, currentCard } = req.body;
     
