@@ -211,10 +211,10 @@ const getTopCard = async (req, res) => {
 // Finalizar juego (solo creador)
 const endGame = async (req, res) => {
   try {
-    const { id } = req.params; 
+    const { gameId } = req.params;
     const userId = req.user.id;
     
-    const result = await gameService.endGame(id, userId);
+    const result = await gameService.endGame(gameId, userId);
     
     if (result === null) {
       return res.status(404).json({ error: "Juego no encontrado" });
